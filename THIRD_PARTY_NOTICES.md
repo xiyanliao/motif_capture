@@ -1,0 +1,29 @@
+# Third Party Notices
+
+This project tracks third-party components used by the Motif Capture MVP.
+
+## Phase 0 Dependencies
+
+| Component | Purpose | License |
+| --- | --- | --- |
+| React | Frontend UI runtime | MIT |
+| React DOM | Browser rendering for React | MIT |
+| Vite | Frontend dev server and build tool | MIT |
+| TypeScript | Static type checking | Apache-2.0 |
+| Vitest | Frontend unit tests | MIT |
+| FastAPI | Backend web framework | MIT |
+| Pydantic | Backend schema validation | MIT |
+| Uvicorn | ASGI server | BSD-3-Clause |
+| pytest | Backend tests | MIT |
+| httpx | TestClient transport dependency | BSD-3-Clause |
+
+## Planned MVP Dependencies
+
+| Component | Purpose | License |
+| --- | --- | --- |
+| Spotify Basic Pitch | Audio-to-MIDI transcription | Apache-2.0 |
+| Tone.js | Browser audio playback | MIT |
+| Dexie | IndexedDB wrapper | Apache-2.0 |
+| @tonejs/midi or midi-writer-js | MIDI export | MIT |
+
+MVP should avoid FFmpeg unless a later requirement explicitly needs it and the LGPL/GPL implications are documented.
