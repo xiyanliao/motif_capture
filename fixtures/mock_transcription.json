@@ -1,0 +1,249 @@
+{
+  "ok": true,
+  "data": {
+    "motif": {
+      "id": "mock_motif_001",
+      "title": "Mock Morning Motif",
+      "createdAt": "2026-05-12T00:00:00.000Z",
+      "updatedAt": "2026-05-12T00:00:00.000Z",
+      "durationSec": 10.0,
+      "bpm": 96,
+      "timeSignature": "4/4",
+      "key": {
+        "tonic": "C",
+        "mode": "major",
+        "confidence": 0.72
+      },
+      "notes": [
+        {
+          "id": "n01",
+          "pitch": 60,
+          "startBeat": 0,
+          "durationBeat": 0.5,
+          "velocity": 0.72,
+          "confidence": 0.82,
+          "startSec": 0,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n02",
+          "pitch": 62,
+          "startBeat": 0.5,
+          "durationBeat": 0.5,
+          "velocity": 0.74,
+          "confidence": 0.8,
+          "startSec": 0.31,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n03",
+          "pitch": 64,
+          "startBeat": 1,
+          "durationBeat": 0.75,
+          "velocity": 0.78,
+          "confidence": 0.86,
+          "startSec": 0.63,
+          "durationSec": 0.47
+        },
+        {
+          "id": "n04",
+          "pitch": 67,
+          "startBeat": 1.75,
+          "durationBeat": 0.25,
+          "velocity": 0.66,
+          "confidence": 0.7,
+          "startSec": 1.09,
+          "durationSec": 0.16
+        },
+        {
+          "id": "n05",
+          "pitch": 69,
+          "startBeat": 2,
+          "durationBeat": 1,
+          "velocity": 0.82,
+          "confidence": 0.88,
+          "startSec": 1.25,
+          "durationSec": 0.63
+        },
+        {
+          "id": "n06",
+          "pitch": 67,
+          "startBeat": 3,
+          "durationBeat": 0.5,
+          "velocity": 0.7,
+          "confidence": 0.76,
+          "startSec": 1.88,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n07",
+          "pitch": 64,
+          "startBeat": 3.5,
+          "durationBeat": 0.5,
+          "velocity": 0.68,
+          "confidence": 0.74,
+          "startSec": 2.19,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n08",
+          "pitch": 62,
+          "startBeat": 4,
+          "durationBeat": 0.5,
+          "velocity": 0.7,
+          "confidence": 0.79,
+          "startSec": 2.5,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n09",
+          "pitch": 60,
+          "startBeat": 4.5,
+          "durationBeat": 0.5,
+          "velocity": 0.73,
+          "confidence": 0.81,
+          "startSec": 2.81,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n10",
+          "pitch": 64,
+          "startBeat": 5,
+          "durationBeat": 0.5,
+          "velocity": 0.79,
+          "confidence": 0.85,
+          "startSec": 3.13,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n11",
+          "pitch": 65,
+          "startBeat": 5.5,
+          "durationBeat": 0.5,
+          "velocity": 0.8,
+          "confidence": 0.84,
+          "startSec": 3.44,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n12",
+          "pitch": 67,
+          "startBeat": 6,
+          "durationBeat": 0.75,
+          "velocity": 0.83,
+          "confidence": 0.88,
+          "startSec": 3.75,
+          "durationSec": 0.47
+        },
+        {
+          "id": "n13",
+          "pitch": 72,
+          "startBeat": 6.75,
+          "durationBeat": 0.25,
+          "velocity": 0.64,
+          "confidence": 0.69,
+          "startSec": 4.22,
+          "durationSec": 0.16
+        },
+        {
+          "id": "n14",
+          "pitch": 71,
+          "startBeat": 7,
+          "durationBeat": 1,
+          "velocity": 0.82,
+          "confidence": 0.83,
+          "startSec": 4.38,
+          "durationSec": 0.63
+        },
+        {
+          "id": "n15",
+          "pitch": 69,
+          "startBeat": 8,
+          "durationBeat": 0.5,
+          "velocity": 0.77,
+          "confidence": 0.82,
+          "startSec": 5,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n16",
+          "pitch": 67,
+          "startBeat": 8.5,
+          "durationBeat": 0.5,
+          "velocity": 0.75,
+          "confidence": 0.8,
+          "startSec": 5.31,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n17",
+          "pitch": 65,
+          "startBeat": 9,
+          "durationBeat": 0.5,
+          "velocity": 0.74,
+          "confidence": 0.81,
+          "startSec": 5.63,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n18",
+          "pitch": 64,
+          "startBeat": 9.5,
+          "durationBeat": 0.5,
+          "velocity": 0.72,
+          "confidence": 0.78,
+          "startSec": 5.94,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n19",
+          "pitch": 62,
+          "startBeat": 10,
+          "durationBeat": 0.75,
+          "velocity": 0.7,
+          "confidence": 0.77,
+          "startSec": 6.25,
+          "durationSec": 0.47
+        },
+        {
+          "id": "n20",
+          "pitch": 60,
+          "startBeat": 10.75,
+          "durationBeat": 0.25,
+          "velocity": 0.68,
+          "confidence": 0.73,
+          "startSec": 6.72,
+          "durationSec": 0.16
+        },
+        {
+          "id": "n21",
+          "pitch": 59,
+          "startBeat": 11,
+          "durationBeat": 0.5,
+          "velocity": 0.67,
+          "confidence": 0.72,
+          "startSec": 6.88,
+          "durationSec": 0.31
+        },
+        {
+          "id": "n22",
+          "pitch": 60,
+          "startBeat": 11.5,
+          "durationBeat": 1,
+          "velocity": 0.76,
+          "confidence": 0.84,
+          "startSec": 7.19,
+          "durationSec": 0.63
+        }
+      ],
+      "tags": ["mock", "phase-1"],
+      "source": {
+        "type": "manual",
+        "engine": "mock-transcription",
+        "engineVersion": "0.0.0"
+      },
+      "versions": []
+    }
+  },
+  "warnings": []
+}

@@ -2,7 +2,7 @@
 
 移动端优先的 Web/PWA MVP：把 5-20 秒哼唱旋律转成可编辑、可播放、可保存、可导出的 Motif 卡片。
 
-当前阶段：Phase 0 工程骨架与契约。
+当前阶段：Phase 1 Mock Motif 编辑闭环。
 
 ## MVP 闭环
 
@@ -106,10 +106,11 @@ cp services/api/.env.example services/api/.env
 
 ## 当前限制
 
-- Phase 0 尚未实现录音。
-- Phase 0 尚未实现 `POST /api/transcribe`。
-- Phase 0 尚未接入 Basic Pitch。
-- Phase 0 尚未实现 piano roll、播放、保存和导出。
+- Phase 1 尚未实现录音。
+- Phase 1 尚未实现 `POST /api/transcribe`。
+- Phase 1 尚未接入 Basic Pitch。
+- Phase 1 尚未实现 Tone.js 播放、保存和导出。
+- Phase 1 的 Editor 使用 mock transcription fixture。
 
 ## 开发纪律
 
