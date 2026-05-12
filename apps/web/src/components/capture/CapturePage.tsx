@@ -2,7 +2,10 @@ import { useMemo, useState } from "react";
 import type { Motif } from "../../domain/motif/types";
 import { MockTranscriptionClient } from "../../services/transcription/MockTranscriptionClient";
 import { RemoteBasicPitchClient } from "../../services/transcription/RemoteBasicPitchClient";
-import type { TranscriptionClient } from "../../services/transcription/contract";
+import type {
+  TranscriptionClient,
+  TranscriptionEngineId
+} from "../../services/transcription/contract";
 
 type CapturePageProps = {
   onTranscribed: (motif: Motif) => void;
@@ -22,7 +25,10 @@ export function CapturePage({
   const [status, setStatus] = useState("Upload a short audio file to start.");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  async function handleAnalyze(client: TranscriptionClient) {
+  async function handleAnalyze(
+    client: TranscriptionClient,
+    engine: TranscriptionEngineId = "mock"
+  ) {
     if (!selectedFile) {
       setStatus("Choose an audio file first.");
       return;
@@ -33,7 +39,8 @@ export function CapturePage({
     const response = await client.transcribe(selectedFile, {
       bpm,
       quantizeGrid: "1/16",
-      forceMonophonic: true
+      forceMonophonic: true,
+      engine
     });
     setIsAnalyzing(false);
 
@@ -96,17 +103,24 @@ export function CapturePage({
         <div className="capture-actions">
           <button
             type="button"
-            onClick={() => void handleAnalyze(remoteClient)}
+            onClick={() => void handleAnalyze(remoteClient, "mock")}
             disabled={!selectedFile || isAnalyzing}
           >
-            Analyze
+            Analyze Mock
           </button>
           <button
             type="button"
-            onClick={() => void handleAnalyze(mockClient)}
+            onClick={() => void handleAnalyze(remoteClient, "basic-pitch")}
             disabled={!selectedFile || isAnalyzing}
           >
-            Use Mock
+            Basic Pitch
+          </button>
+          <button
+            type="button"
+            onClick={() => void handleAnalyze(mockClient, "mock")}
+            disabled={!selectedFile || isAnalyzing}
+          >
+            Local Mock
           </button>
         </div>
 

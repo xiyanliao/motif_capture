@@ -1,4 +1,7 @@
+basic-pitch>=0.4,<0.5
 fastapi>=0.115,<0.116
+numpy<2
 pydantic>=2.10,<3
 python-multipart>=0.0.20,<0.1
+setuptools<81
 uvicorn[standard]>=0.32,<0.33

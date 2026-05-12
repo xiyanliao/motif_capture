@@ -22,6 +22,7 @@ export class RemoteBasicPitchClient implements TranscriptionClient {
     appendOption(formData, "keyHint", options.keyHint);
     appendOption(formData, "minNoteDurationMs", options.minNoteDurationMs);
     appendOption(formData, "mergeGapMs", options.mergeGapMs);
+    appendOption(formData, "engine", options.engine);
 
     try {
       const response = await fetch(`${this.apiBaseUrl}/api/transcribe`, {

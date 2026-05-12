@@ -1,6 +1,6 @@
 # API 契约
 
-阶段：MVP Phase 4
+阶段：MVP Phase 5
 
 ## 通用原则
 
@@ -24,11 +24,11 @@
 }
 ```
 
-Phase 4 中 `engine` 固定为 `mock`。接入 Basic Pitch 后可返回 `basic-pitch`。
+Phase 5 中 `engine` 仍返回当前后端默认引擎状态。转写 route 可按请求参数选择 `mock` 或 `basic-pitch`。
 
 ## `POST /api/transcribe`
 
-Phase 4 已实现 mock route；真实 Basic Pitch engine 在后续阶段接入。
+Phase 5 已实现 mock route、Basic Pitch engine 隔离类和后处理 pipeline。默认仍使用 mock engine，避免模型依赖阻塞 UI 闭环。
 
 请求：
 
@@ -48,6 +48,7 @@ Content-Type: multipart/form-data
 | `keyHint` | string | 否 | 用户提供的调性提示。 |
 | `minNoteDurationMs` | number | 否 | 默认 `80`。 |
 | `mergeGapMs` | number | 否 | 默认 `80`。 |
+| `engine` | string | 否 | `mock` 或 `basic-pitch`，默认 `mock`。 |
 
 成功响应：
 
@@ -58,8 +59,8 @@ Content-Type: multipart/form-data
     "motif": {
       "id": "m1",
       "title": "Untitled Motif",
-      "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-05-12T00:00:00.000Z",
+      "createdAt": "2026-05-13T00:00:00.000Z",
+      "updatedAt": "2026-05-13T00:00:00.000Z",
       "durationSec": 8.5,
       "bpm": 96,
       "timeSignature": "4/4",
@@ -106,3 +107,4 @@ Content-Type: multipart/form-data
 | `forceMonophonic` | `true` |
 | `minNoteDurationMs` | `80` |
 | `mergeGapMs` | `80` |
+| `engine` | `mock` |

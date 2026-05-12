@@ -2,7 +2,7 @@
 
 移动端优先的 Web/PWA MVP：把 5-20 秒哼唱旋律转成可编辑、可播放、可保存、可导出的 Motif 卡片。
 
-当前阶段：Phase 4 后端 Mock Transcription。
+当前阶段：Phase 5 Basic Pitch 与后处理。
 
 ## MVP 闭环
 
@@ -106,13 +106,11 @@ cp services/api/.env.example services/api/.env
 
 ## 当前限制
 
-- Phase 1 尚未实现录音。
-- Phase 1 尚未实现 `POST /api/transcribe`。
-- Phase 1 尚未接入 Basic Pitch。
-- Phase 4 已实现 Capture 上传入口与 `POST /api/transcribe` mock route。
-- Phase 4 已实现 IndexedDB 保存、Library、JSON 导入导出、MIDI 导出。
-- Phase 4 尚未实现浏览器录音。
-- Phase 4 尚未接入 Basic Pitch。
+- Phase 5 已实现 Capture 上传入口与 `POST /api/transcribe`。
+- Phase 5 已实现 mock route、Basic Pitch engine 隔离类和后处理 pipeline。
+- Phase 5 已实现 IndexedDB 保存、Library、JSON 导入导出、MIDI 导出。
+- Phase 5 尚未实现浏览器录音。
+- Basic Pitch 真实推理依赖本地 Python 环境与模型运行能力；不可用时 API 返回 `ENGINE_NOT_AVAILABLE`，mock path 仍可用。
 
 ## 开发纪律
 

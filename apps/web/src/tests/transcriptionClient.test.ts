@@ -52,7 +52,8 @@ describe("RemoteBasicPitchClient", () => {
     const response = await client.transcribe(new Blob(["audio"]), {
       bpm: 120,
       quantizeGrid: "1/16",
-      forceMonophonic: true
+      forceMonophonic: true,
+      engine: "basic-pitch"
     });
 
     expect(response.ok).toBe(true);
@@ -63,5 +64,7 @@ describe("RemoteBasicPitchClient", () => {
         body: expect.any(FormData)
       })
     );
+    const body = fetchMock.mock.calls[0][1].body as FormData;
+    expect(body.get("engine")).toBe("basic-pitch");
   });
 });

@@ -1,6 +1,7 @@
 import type { Motif } from "../../domain/motif/types";
 
 export type QuantizeGrid = "off" | "1/8" | "1/16" | "1/32";
+export type TranscriptionEngineId = "mock" | "basic-pitch";
 
 export type TranscriptionOptions = {
   bpm?: number;
@@ -9,6 +10,7 @@ export type TranscriptionOptions = {
   keyHint?: string;
   minNoteDurationMs?: number;
   mergeGapMs?: number;
+  engine?: TranscriptionEngineId;
 };
 
 export type ApiErrorCode =
