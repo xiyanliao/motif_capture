@@ -14,6 +14,7 @@ export type TranscriptionOptions = {
 };
 
 export type ApiErrorCode =
+  | "API_UNCONFIGURED"
   | "INVALID_AUDIO"
   | "TRANSCRIPTION_FAILED"
   | "ENGINE_NOT_AVAILABLE"

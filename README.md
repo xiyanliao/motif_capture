@@ -127,6 +127,8 @@ pnpm --filter web preview
 
 PWA 仅缓存 app shell 和同源 GET 资源；`POST /api/transcribe` 不缓存。
 
+Cloudflare Pages 部署见 [docs/11_cloudflare_pages_pwa_deploy.md](docs/11_cloudflare_pages_pwa_deploy.md)。生产环境需要设置 `VITE_API_BASE_URL` 指向公网 HTTPS API；否则 Basic Pitch 转写会显示 API 未配置，但本地 mock、编辑、保存和导出仍可使用。
+
 ## 当前限制
 
 - Phase 7 已串联 Capture、Analyze、Editor、Playback、Save、Library、JSON/MIDI Export。

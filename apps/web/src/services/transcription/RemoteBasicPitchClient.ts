@@ -6,14 +6,34 @@ import type {
 } from "./contract";
 
 const DEFAULT_API_BASE_URL = "http://localhost:8000";
+const API_UNCONFIGURED_MESSAGE =
+  "Transcription API is not configured for this deployment.";
+
+type ApiRuntimeEnv = {
+  PROD?: boolean;
+  VITE_API_BASE_URL?: string;
+};
 
 export class RemoteBasicPitchClient implements TranscriptionClient {
-  constructor(private readonly apiBaseUrl = getApiBaseUrl()) {}
+  constructor(private readonly apiBaseUrl: string | null = resolveApiBaseUrl()) {}
 
   async transcribe(
     file: Blob,
     options: TranscriptionOptions
   ): Promise<TranscriptionResponse> {
+    if (!this.apiBaseUrl) {
+      return {
+        ok: false,
+        error: {
+          code: "API_UNCONFIGURED",
+          message: API_UNCONFIGURED_MESSAGE,
+          details: {
+            env: "VITE_API_BASE_URL"
+          }
+        }
+      };
+    }
+
     const formData = new FormData();
     formData.append("file", file, getUploadName(file));
     appendOption(formData, "bpm", options.bpm);
@@ -62,8 +82,13 @@ function appendOption(
   }
 }
 
-function getApiBaseUrl(): string {
-  return import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL;
+export function resolveApiBaseUrl(env: ApiRuntimeEnv = import.meta.env): string | null {
+  const configured = env.VITE_API_BASE_URL?.trim();
+  if (configured) {
+    return configured.replace(/\/+$/, "");
+  }
+
+  return env.PROD ? null : DEFAULT_API_BASE_URL;
 }
 
 function getUploadName(file: Blob): string {

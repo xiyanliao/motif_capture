@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MockTranscriptionClient } from "../services/transcription/MockTranscriptionClient";
-import { RemoteBasicPitchClient } from "../services/transcription/RemoteBasicPitchClient";
+import {
+  RemoteBasicPitchClient,
+  resolveApiBaseUrl
+} from "../services/transcription/RemoteBasicPitchClient";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -24,6 +27,31 @@ describe("MockTranscriptionClient", () => {
 });
 
 describe("RemoteBasicPitchClient", () => {
+  it("requires an explicit API base URL in production builds", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(resolveApiBaseUrl({ PROD: false })).toBe("http://localhost:8000");
+    expect(resolveApiBaseUrl({ PROD: true })).toBeNull();
+    expect(
+      resolveApiBaseUrl({
+        PROD: true,
+        VITE_API_BASE_URL: "https://api.example.com/"
+      })
+    ).toBe("https://api.example.com");
+
+    const client = new RemoteBasicPitchClient(null);
+    const response = await client.transcribe(new Blob(["audio"]), {
+      engine: "basic-pitch"
+    });
+
+    expect(response.ok).toBe(false);
+    if (!response.ok) {
+      expect(response.error.code).toBe("API_UNCONFIGURED");
+    }
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("posts multipart data to the transcription endpoint", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
