@@ -3,7 +3,6 @@ import { CapturePage } from "./components/capture/CapturePage";
 import { EditorPage } from "./components/editor/EditorPage";
 import { LibraryPage } from "./components/library/LibraryPage";
 import type { Motif } from "./domain/motif/types";
-import { mockMotif } from "./fixtures/mockMotif";
 import { useOnlineStatus } from "./hooks/useOnlineStatus";
 import { motifRepository } from "./services/storage/motifRepository";
 
@@ -11,7 +10,7 @@ type AppView = "capture" | "editor" | "library";
 type AppBootState = "loading" | "ready" | "failed";
 
 export function App() {
-  const [activeMotif, setActiveMotif] = useState<Motif>(mockMotif);
+  const [activeMotif, setActiveMotif] = useState<Motif | null>(null);
   const [bootError, setBootError] = useState<string | null>(null);
   const [bootState, setBootState] = useState<AppBootState>("loading");
   const [view, setView] = useState<AppView>("capture");
@@ -121,14 +120,45 @@ export function App() {
   return (
     <>
       {offlineBanner}
-      <EditorPage
-        key={`${activeMotif.id}-${activeMotif.updatedAt}`}
-        initialMotif={activeMotif}
-        onSaveMotif={handleSaveMotif}
-        onOpenLibrary={() => setView("library")}
-        onOpenCapture={() => setView("capture")}
-        onImportMotif={setActiveMotif}
-      />
+      {activeMotif ? (
+        <EditorPage
+          key={`${activeMotif.id}-${activeMotif.updatedAt}`}
+          initialMotif={activeMotif}
+          onSaveMotif={handleSaveMotif}
+          onOpenLibrary={() => setView("library")}
+          onOpenCapture={() => setView("capture")}
+          onImportMotif={setActiveMotif}
+        />
+      ) : (
+        <EditorEmptyState
+          onOpenCapture={() => setView("capture")}
+          onOpenLibrary={() => setView("library")}
+        />
+      )}
     </>
+  );
+}
+
+function EditorEmptyState({
+  onOpenCapture,
+  onOpenLibrary
+}: {
+  onOpenCapture: () => void;
+  onOpenLibrary: () => void;
+}) {
+  return (
+    <main className="app-shell-state">
+      <p className="eyebrow">Editor</p>
+      <h1>No motif loaded</h1>
+      <p>Record or upload audio from Capture, or open a saved motif from Library.</p>
+      <div className="empty-action-bank">
+        <button type="button" onClick={onOpenCapture}>
+          Capture
+        </button>
+        <button type="button" onClick={onOpenLibrary}>
+          Library
+        </button>
+      </div>
+    </main>
   );
 }

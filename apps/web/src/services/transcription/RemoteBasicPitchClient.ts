@@ -82,10 +82,21 @@ function appendOption(
   }
 }
 
-export function resolveApiBaseUrl(env: ApiRuntimeEnv = import.meta.env): string | null {
+export function resolveApiBaseUrl(
+  env: ApiRuntimeEnv = import.meta.env,
+  currentOrigin = typeof window === "undefined" ? undefined : window.location.origin
+): string | null {
   const configured = env.VITE_API_BASE_URL?.trim();
   if (configured) {
-    return configured.replace(/\/+$/, "");
+    const normalized = configured.replace(/\/+$/, "");
+    const configuredOrigin = getOrigin(normalized);
+    if (
+      env.PROD &&
+      (!configuredOrigin || (currentOrigin && configuredOrigin === currentOrigin))
+    ) {
+      return null;
+    }
+    return normalized;
   }
 
   return env.PROD ? null : DEFAULT_API_BASE_URL;
@@ -101,4 +112,12 @@ function toApiError(error: unknown): ApiError {
     message: error instanceof Error ? error.message : "Could not reach transcription API.",
     details: {}
   };
+}
+
+function getOrigin(value: string): string | null {
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
 }

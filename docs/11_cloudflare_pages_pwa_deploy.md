@@ -12,7 +12,7 @@
 
 | 配置项 | 值 |
 | --- | --- |
-| Framework preset | `Vite` |
+| Framework preset | `React (Vite)` |
 | Root directory | `/` |
 | Build command | `pnpm --filter web build` |
 | Build output directory | `apps/web/dist` |
@@ -25,6 +25,8 @@
 | `VITE_API_BASE_URL` | 公开 FastAPI origin，例如 `https://api.example.com`。生产环境必须配置。 |
 
 若暂时没有公开 API，部署后的 PWA 仍可打开、安装、使用本地 mock、编辑、保存和导出；但 `Basic Pitch` 按钮会显示 API 未配置。
+
+如果页面可以打开但录音后进入 Editor 看到无关旋律，优先检查真实转写 API 是否接通。排查与修复步骤见 [docs/12_production_transcription_fix_plan.md](12_production_transcription_fix_plan.md)。
 
 ## 后端 CORS 配置
 

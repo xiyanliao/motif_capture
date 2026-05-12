@@ -47,7 +47,9 @@ http://localhost:5173
 3. 打开 Capture：
    - 点 `Record` 录制 5-20 秒哼唱。
    - 点 `Stop` 后可试听原始 WAV。
-   - 点 `Basic Pitch` 走真实后端推理，或点 `Analyze Mock` 做前后端联调。
+   - 点 `Basic Pitch` 走真实后端推理；生产环境必须先配置 `VITE_API_BASE_URL`。
+   - `Demo Motif` 只打开内置示例旋律，不代表真实转写结果。
+   - `Analyze Mock` 仅在开发构建中显示，用于前后端联调。
 4. 分析成功后自动进入 Editor，可播放、编辑、保存。
 5. 保存后进入 Library，刷新页面后保存内容仍保留在 IndexedDB。
 6. Editor 可导出 JSON/MIDI，Library 可导出 JSON。
@@ -128,6 +130,8 @@ pnpm --filter web preview
 PWA 仅缓存 app shell 和同源 GET 资源；`POST /api/transcribe` 不缓存。
 
 Cloudflare Pages 部署见 [docs/11_cloudflare_pages_pwa_deploy.md](docs/11_cloudflare_pages_pwa_deploy.md)。生产环境需要设置 `VITE_API_BASE_URL` 指向公网 HTTPS API；否则 Basic Pitch 转写会显示 API 未配置，但本地 mock、编辑、保存和导出仍可使用。
+
+如果生产页面能打开但录音转写后出现无关旋律，通常是前端仍在使用 mock 或没有接通公网 FastAPI。修复方案见 [docs/12_production_transcription_fix_plan.md](docs/12_production_transcription_fix_plan.md)。
 
 ## 当前限制
 

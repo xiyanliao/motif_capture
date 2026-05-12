@@ -44,6 +44,12 @@ body {
   font-size: 0.9rem;
 }
 
+.empty-action-bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 button,
 input,
 textarea,
@@ -75,6 +81,12 @@ button:hover:not(:disabled) {
   border-color: #78d9c2;
   background: #18342f;
   color: #e7fff8;
+}
+
+.button-secondary {
+  border-color: #353936;
+  background: #171b19;
+  color: #b3ab9e;
 }
 
 button:disabled {

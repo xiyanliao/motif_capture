@@ -5,11 +5,19 @@ import {
   type WavRecorderStatus
 } from "../../hooks/useWavRecorder";
 import { MockTranscriptionClient } from "../../services/transcription/MockTranscriptionClient";
-import { RemoteBasicPitchClient } from "../../services/transcription/RemoteBasicPitchClient";
+import {
+  RemoteBasicPitchClient,
+  resolveApiBaseUrl
+} from "../../services/transcription/RemoteBasicPitchClient";
 import type {
   TranscriptionClient,
   TranscriptionEngineId
 } from "../../services/transcription/contract";
+import {
+  canAnalyzeAudio,
+  canRunBasicPitch,
+  productionApiStatusMessage
+} from "./captureState";
 
 type CapturePageProps = {
   onTranscribed: (motif: Motif) => void;
@@ -26,16 +34,34 @@ export function CapturePage({
 }: CapturePageProps) {
   const remoteClient = useMemo<TranscriptionClient>(() => new RemoteBasicPitchClient(), []);
   const mockClient = useMemo<TranscriptionClient>(() => new MockTranscriptionClient(), []);
+  const hasTranscriptionApi = useMemo(() => resolveApiBaseUrl() !== null, []);
+  const isProductionBuild = import.meta.env.PROD;
+  const apiConfigMessage = productionApiStatusMessage(
+    isProductionBuild,
+    hasTranscriptionApi
+  );
   const recorder = useWavRecorder();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [bpm, setBpm] = useState(96);
-  const [status, setStatus] = useState("Record or upload a short audio file to start.");
+  const [status, setStatus] = useState(
+    apiConfigMessage ?? "Record or upload a short audio file to start."
+  );
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const activeFile = selectedFile ?? recorder.recordedFile;
   const activeInputLabel = selectedFile
     ? selectedFile.name
     : recorder.recordedFile?.name ?? "No audio selected";
-  const canAnalyze = Boolean(activeFile) && !isAnalyzing && recorder.status !== "recording";
+  const canAnalyze = canAnalyzeAudio({
+    hasAudio: Boolean(activeFile),
+    isAnalyzing,
+    isRecording: recorder.status === "recording"
+  });
+  const canAnalyzeWithBasicPitch = canRunBasicPitch({
+    hasAudio: Boolean(activeFile),
+    hasTranscriptionApi,
+    isAnalyzing,
+    isRecording: recorder.status === "recording"
+  });
   const flowState = getCaptureFlowState(recorder.status, Boolean(activeFile), isAnalyzing);
 
   async function handleAnalyze(
@@ -64,6 +90,26 @@ export function CapturePage({
           ? `Opened editor. ${response.warnings.join(", ")}`
           : "Opened editor."
       );
+      return;
+    }
+
+    setStatus(response.error.message);
+  }
+
+  async function handleDemoMotif() {
+    setIsAnalyzing(true);
+    setStatus("Opening demo motif...");
+    const response = await mockClient.transcribe(new Blob(["demo"], { type: "audio/wav" }), {
+      bpm,
+      quantizeGrid: "1/16",
+      forceMonophonic: true,
+      engine: "mock"
+    });
+    setIsAnalyzing(false);
+
+    if (response.ok) {
+      onTranscribed(response.data.motif);
+      setStatus("Opened demo motif.");
       return;
     }
 
@@ -156,6 +202,7 @@ export function CapturePage({
           {!recorder.isSupported ? (
             <p className="capture-error">This browser does not support microphone recording.</p>
           ) : null}
+          {apiConfigMessage ? <p className="capture-warning">{apiConfigMessage}</p> : null}
           {recorder.warning ? <p className="capture-warning">{recorder.warning}</p> : null}
           {recorder.error ? <p className="capture-error">{recorder.error}</p> : null}
         </div>
@@ -190,24 +237,32 @@ export function CapturePage({
         <div className="capture-actions">
           <button
             type="button"
-            onClick={() => void handleAnalyze(remoteClient, "mock")}
-            disabled={!canAnalyze}
-          >
-            Analyze Mock
-          </button>
-          <button
-            type="button"
             onClick={() => void handleAnalyze(remoteClient, "basic-pitch")}
-            disabled={!canAnalyze}
+            disabled={!canAnalyzeWithBasicPitch}
+            title={
+              hasTranscriptionApi
+                ? "Analyze with deployed Basic Pitch API"
+                : "Set VITE_API_BASE_URL to enable Basic Pitch"
+            }
           >
             Basic Pitch
           </button>
+          {!isProductionBuild ? (
+            <button
+              type="button"
+              onClick={() => void handleAnalyze(remoteClient, "mock")}
+              disabled={!canAnalyze}
+            >
+              Analyze Mock
+            </button>
+          ) : null}
           <button
             type="button"
-            onClick={() => void handleAnalyze(mockClient, "mock")}
-            disabled={!canAnalyze}
+            className={isProductionBuild ? "button-secondary" : undefined}
+            onClick={() => void handleDemoMotif()}
+            disabled={isAnalyzing || recorder.status === "recording"}
           >
-            Local Mock
+            Demo Motif
           </button>
         </div>
 

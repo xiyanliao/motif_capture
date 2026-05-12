@@ -52,6 +52,7 @@ export function EditorPage({
     () => motif.notes.find((note) => note.id === selectedNoteId) ?? null,
     [motif.notes, selectedNoteId]
   );
+  const sourceEngine = motif.source?.engine ?? motif.source?.type ?? "manual";
 
   useEffect(() => {
     playbackRef.current = new TonePlayback();
@@ -234,6 +235,7 @@ export function EditorPage({
         </div>
         <div className="editor-header-actions">
           <div className="motif-meta" aria-label="Motif metadata">
+            <span>Source {sourceEngine}</span>
             <span>{motif.key ? `${motif.key.tonic} ${motif.key.mode}` : "Key unknown"}</span>
             <span>{motif.bpm} BPM</span>
             <span>{motif.timeSignature}</span>
