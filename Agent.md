@@ -749,3 +749,13 @@ MOTIF_MAX_AUDIO_SECONDS=30
 - 动机版本树。
 - 风格化变体。
 - 云同步。
+
+---
+
+## 20. Git 与 GitHub 同步纪律
+
+- 每完成一个独立 feature 后，先运行相关测试。
+- 测试通过后再提交该 feature。
+- GitHub remote 配置完成后，每个已测试通过的 feature commit 都要同步推送到 GitHub。
+- 如果测试无法运行，必须在提交说明或最终回复中写清楚原因。
+- 如果 remote 尚未配置，先完成本地提交，并等待提供 GitHub 仓库地址后再推送。
