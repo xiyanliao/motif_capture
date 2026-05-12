@@ -6,10 +6,12 @@ import {
   updateNote
 } from "../../domain/motif/editing";
 import type { MotifNote } from "../../domain/motif/types";
+import { midiToPitchName } from "../../domain/music/pitch";
 
 type PianoRollProps = {
   notes: MotifNote[];
   selectedNoteId: string | null;
+  playheadBeat: number;
   onChangeNotes: (notes: MotifNote[]) => void;
   onSelectNote: (noteId: string | null) => void;
   onDeleteNote: (noteId: string) => void;
@@ -35,11 +37,12 @@ const PIXELS_PER_BEAT = 68;
 const HANDLE_WIDTH = 12;
 const MIN_VISIBLE_BEATS = 16;
 const MIN_VISIBLE_PITCHES = 18;
-const PITCH_NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+const BLACK_KEY_PITCH_CLASSES = new Set([1, 3, 6, 8, 10]);
 
 export function PianoRoll({
   notes,
   selectedNoteId,
+  playheadBeat,
   onChangeNotes,
   onSelectNote,
   onDeleteNote
@@ -154,7 +157,7 @@ export function PianoRoll({
         </div>
         <div>
           <span>Selected</span>
-          <strong>{selectedNote ? pitchName(selectedNote.pitch) : "None"}</strong>
+          <strong>{selectedNote ? midiToPitchName(selectedNote.pitch) : "None"}</strong>
         </div>
       </div>
 
@@ -191,7 +194,7 @@ export function PianoRoll({
                   height={ROW_HEIGHT}
                 />
                 <text className="pitch-label" x={12} y={y + 16}>
-                  {pitchName(pitch)}
+                  {midiToPitchName(pitch)}
                 </text>
               </g>
             );
@@ -224,6 +227,14 @@ export function PianoRoll({
             y1={HEADER_HEIGHT}
             x2={layout.width}
             y2={HEADER_HEIGHT}
+          />
+
+          <line
+            className="playhead-line"
+            x1={LABEL_WIDTH + Math.min(playheadBeat, layout.totalBeats) * PIXELS_PER_BEAT}
+            y1={HEADER_HEIGHT}
+            x2={LABEL_WIDTH + Math.min(playheadBeat, layout.totalBeats) * PIXELS_PER_BEAT}
+            y2={layout.height}
           />
 
           {notes.map((note) => {
@@ -267,7 +278,7 @@ export function PianoRoll({
                   y={y + 14}
                   pointerEvents="none"
                 >
-                  {pitchName(note.pitch)}
+                  {midiToPitchName(note.pitch)}
                 </text>
               </g>
             );
@@ -322,13 +333,8 @@ function yToPitch(y: number, maxPitch: number): number {
   return clampPitch(maxPitch - Math.floor((y - HEADER_HEIGHT) / ROW_HEIGHT));
 }
 
-function pitchName(pitch: number): string {
-  const octave = Math.floor(pitch / 12) - 1;
-  return `${PITCH_NAMES[pitch % 12]}${octave}`;
-}
-
 function isBlackKey(pitch: number): boolean {
-  return PITCH_NAMES[pitch % 12].includes("#");
+  return BLACK_KEY_PITCH_CLASSES.has(pitch % 12);
 }
 
 function clampPitch(pitch: number): number {

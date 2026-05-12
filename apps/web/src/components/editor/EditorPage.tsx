@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { quantizeNotes } from "../../domain/quantize/quantize";
+import { midiToPitchName } from "../../domain/music/pitch";
 import {
   addNote,
   DEFAULT_GRID_BEAT,
@@ -8,6 +10,8 @@ import {
   nudgeStart
 } from "../../domain/motif/editing";
 import type { Motif, MotifNote } from "../../domain/motif/types";
+import { invert, retrograde, stretchRhythm, transpose } from "../../domain/transforms";
+import { getTotalBeats, TonePlayback } from "../../services/playback/TonePlayback";
 import { PianoRoll } from "./PianoRoll";
 
 type EditorPageProps = {
@@ -19,11 +23,20 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(
     initialMotif.notes[0]?.id ?? null
   );
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [loop, setLoop] = useState(false);
+  const [playheadBeat, setPlayheadBeat] = useState(0);
+  const playbackRef = useRef<TonePlayback | null>(null);
 
   const selectedNote = useMemo(
     () => motif.notes.find((note) => note.id === selectedNoteId) ?? null,
     [motif.notes, selectedNoteId]
   );
+
+  useEffect(() => {
+    playbackRef.current = new TonePlayback();
+    return () => playbackRef.current?.dispose();
+  }, []);
 
   function setNotes(notes: MotifNote[]) {
     setMotif((current) => ({
@@ -33,8 +46,13 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
     }));
   }
 
+  function applyNotes(notes: MotifNote[]) {
+    setNotes(notes);
+    setPlayheadBeat(0);
+  }
+
   function handleDeleteNote(noteId: string) {
-    setNotes(deleteNote(motif.notes, noteId));
+    applyNotes(deleteNote(motif.notes, noteId));
     setSelectedNoteId((current) => (current === noteId ? null : current));
   }
 
@@ -44,7 +62,7 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
       : nextWholeBeat(motif.notes);
     const basePitch = selectedNote?.pitch ?? 60;
     const id = `n${Date.now().toString(36)}`;
-    setNotes(addNote(motif.notes, baseBeat, basePitch, id));
+    applyNotes(addNote(motif.notes, baseBeat, basePitch, id));
     setSelectedNoteId(id);
   }
 
@@ -52,21 +70,76 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
     if (!selectedNoteId) {
       return;
     }
-    setNotes(nudgePitch(motif.notes, selectedNoteId, semitones));
+    applyNotes(nudgePitch(motif.notes, selectedNoteId, semitones));
   }
 
   function handleNudgeStart(beats: number) {
     if (!selectedNoteId) {
       return;
     }
-    setNotes(nudgeStart(motif.notes, selectedNoteId, beats));
+    applyNotes(nudgeStart(motif.notes, selectedNoteId, beats));
   }
 
   function handleNudgeDuration(beats: number) {
     if (!selectedNoteId) {
       return;
     }
-    setNotes(nudgeDuration(motif.notes, selectedNoteId, beats));
+    applyNotes(nudgeDuration(motif.notes, selectedNoteId, beats));
+  }
+
+  async function handlePlay() {
+    if (motif.notes.length === 0) {
+      return;
+    }
+
+    setIsPlaying(true);
+    await playbackRef.current?.start(motif.notes, {
+      bpm: motif.bpm,
+      loop,
+      onPlayheadBeat: setPlayheadBeat,
+      onEnded: () => setIsPlaying(false)
+    });
+  }
+
+  function handleStop() {
+    playbackRef.current?.stop();
+    setIsPlaying(false);
+    setPlayheadBeat(0);
+  }
+
+  function handleLoopToggle() {
+    const nextLoop = !loop;
+    setLoop(nextLoop);
+
+    if (isPlaying) {
+      void playbackRef.current?.start(motif.notes, {
+        bpm: motif.bpm,
+        loop: nextLoop,
+        onPlayheadBeat: setPlayheadBeat,
+        onEnded: () => setIsPlaying(false)
+      });
+    }
+  }
+
+  function handleQuantize() {
+    applyNotes(quantizeNotes(motif.notes, "1/16"));
+  }
+
+  function handleTranspose(semitones: number) {
+    applyNotes(transpose(motif.notes, semitones));
+  }
+
+  function handleInvert() {
+    const axisPitch = selectedNote?.pitch ?? 60;
+    applyNotes(invert(motif.notes, axisPitch));
+  }
+
+  function handleRetrograde() {
+    applyNotes(retrograde(motif.notes, getTotalBeats(motif.notes)));
+  }
+
+  function handleStretch(factor: number) {
+    applyNotes(stretchRhythm(motif.notes, factor));
   }
 
   return (
@@ -86,7 +159,8 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
       <PianoRoll
         notes={motif.notes}
         selectedNoteId={selectedNoteId}
-        onChangeNotes={setNotes}
+        playheadBeat={playheadBeat}
+        onChangeNotes={applyNotes}
         onSelectNote={setSelectedNoteId}
         onDeleteNote={handleDeleteNote}
       />
@@ -94,15 +168,32 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
       <section className="editor-controls" aria-label="Note controls">
         <div className="selected-readout">
           <span>Selected</span>
-          <strong>{selectedNote ? selectedNote.id : "None"}</strong>
+          <strong>{selectedNote ? midiToPitchName(selectedNote.pitch) : "None"}</strong>
           {selectedNote ? (
             <small>
-              Pitch {selectedNote.pitch} · Beat {selectedNote.startBeat} · Len{" "}
-              {selectedNote.durationBeat}
+              {selectedNote.id} · Beat {selectedNote.startBeat} · Len {selectedNote.durationBeat}
             </small>
           ) : (
             <small>No note selected</small>
           )}
+        </div>
+
+        <div className="control-bank transport-bank">
+          <button
+            type="button"
+            onClick={isPlaying ? handleStop : () => void handlePlay()}
+            title={isPlaying ? "Stop" : "Play"}
+          >
+            {isPlaying ? "■" : "▶"}
+          </button>
+          <button
+            type="button"
+            className={loop ? "button-active" : undefined}
+            onClick={handleLoopToggle}
+            title="Loop"
+          >
+            ↻
+          </button>
         </div>
 
         <div className="control-bank">
@@ -119,7 +210,7 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
           </button>
         </div>
 
-        <div className="control-bank">
+        <div className="control-bank note-bank">
           <button
             type="button"
             onClick={() => handleNudgePitch(1)}
@@ -167,6 +258,30 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
             title="Shorter"
           >
             −
+          </button>
+        </div>
+
+        <div className="control-bank transform-bank">
+          <button type="button" onClick={handleQuantize} title="Quantize 1/16">
+            Q
+          </button>
+          <button type="button" onClick={() => handleTranspose(1)} title="Transpose up">
+            T+
+          </button>
+          <button type="button" onClick={() => handleTranspose(-1)} title="Transpose down">
+            T-
+          </button>
+          <button type="button" onClick={handleInvert} title="Invert around selected pitch">
+            Inv
+          </button>
+          <button type="button" onClick={handleRetrograde} title="Retrograde">
+            Rev
+          </button>
+          <button type="button" onClick={() => handleStretch(0.5)} title="Compress rhythm">
+            x.5
+          </button>
+          <button type="button" onClick={() => handleStretch(2)} title="Expand rhythm">
+            x2
           </button>
         </div>
       </section>

@@ -47,6 +47,12 @@ button:hover:not(:disabled) {
   transform: translateY(-1px);
 }
 
+.button-active {
+  border-color: #78d9c2;
+  background: #18342f;
+  color: #e7fff8;
+}
+
 button:disabled {
   color: #686b66;
   cursor: not-allowed;
@@ -191,6 +197,14 @@ h1 {
   stroke-width: 1.2;
 }
 
+.playhead-line {
+  stroke: #ff725c;
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 7px rgb(255 114 92 / 0.32));
+  transition: x1 80ms linear, x2 80ms linear;
+}
+
 .note-block {
   fill: #c9a04a;
   stroke: #f5d483;
@@ -234,7 +248,7 @@ h1 {
 
 .editor-controls {
   display: grid;
-  grid-template-columns: minmax(160px, 1fr) auto auto;
+  grid-template-columns: minmax(160px, 1fr) auto auto auto auto;
   gap: 12px;
   align-items: center;
   border-top: 1px solid #2c302d;
@@ -256,6 +270,14 @@ h1 {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: end;
+}
+
+.transport-bank button {
+  min-width: 48px;
+}
+
+.transform-bank button {
+  min-width: 46px;
 }
 
 @media (max-width: 760px) {
@@ -293,7 +315,15 @@ h1 {
     justify-content: stretch;
   }
 
-  .control-bank:first-of-type {
+  .transport-bank {
     grid-template-columns: repeat(2, minmax(42px, 1fr));
+  }
+
+  .note-bank {
+    grid-template-columns: repeat(3, minmax(42px, 1fr));
+  }
+
+  .transform-bank {
+    grid-template-columns: repeat(4, minmax(42px, 1fr));
   }
 }

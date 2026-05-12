@@ -11,6 +11,7 @@ This project tracks third-party components used by the Motif Capture MVP.
 | Vite | Frontend dev server and build tool | MIT |
 | TypeScript | Static type checking | Apache-2.0 |
 | Vitest | Frontend unit tests | MIT |
+| Tone.js | Browser audio playback | MIT |
 | FastAPI | Backend web framework | MIT |
 | Pydantic | Backend schema validation | MIT |
 | Uvicorn | ASGI server | BSD-3-Clause |
@@ -22,7 +23,6 @@ This project tracks third-party components used by the Motif Capture MVP.
 | Component | Purpose | License |
 | --- | --- | --- |
 | Spotify Basic Pitch | Audio-to-MIDI transcription | Apache-2.0 |
-| Tone.js | Browser audio playback | MIT |
 | Dexie | IndexedDB wrapper | Apache-2.0 |
 | @tonejs/midi or midi-writer-js | MIDI export | MIT |
 
