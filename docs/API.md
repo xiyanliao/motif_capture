@@ -1,6 +1,6 @@
 # API 契约
 
-阶段：MVP Phase 0
+阶段：MVP Phase 4
 
 ## 通用原则
 
@@ -24,11 +24,11 @@
 }
 ```
 
-阶段 0 中 `engine` 固定为 `mock`。接入 Basic Pitch 后可返回 `basic-pitch`。
+Phase 4 中 `engine` 固定为 `mock`。接入 Basic Pitch 后可返回 `basic-pitch`。
 
 ## `POST /api/transcribe`
 
-阶段 0 只固定契约，真实 route 在后续阶段实现。
+Phase 4 已实现 mock route；真实 Basic Pitch engine 在后续阶段接入。
 
 请求：
 
@@ -66,9 +66,9 @@ Content-Type: multipart/form-data
       "notes": [],
       "tags": [],
       "source": {
-        "type": "recording",
-        "engine": "basic-pitch",
-        "engineVersion": "..."
+        "type": "upload",
+        "engine": "mock-transcription",
+        "engineVersion": "0.0.0"
       },
       "versions": []
     }

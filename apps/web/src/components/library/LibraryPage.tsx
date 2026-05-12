@@ -7,9 +7,14 @@ import { motifRepository } from "../../services/storage/motifRepository";
 type LibraryPageProps = {
   onOpenMotif: (motif: Motif) => void;
   onBackToEditor: () => void;
+  onOpenCapture: () => void;
 };
 
-export function LibraryPage({ onOpenMotif, onBackToEditor }: LibraryPageProps) {
+export function LibraryPage({
+  onOpenMotif,
+  onBackToEditor,
+  onOpenCapture
+}: LibraryPageProps) {
   const [motifs, setMotifs] = useState<Motif[]>([]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("Library ready");
@@ -63,6 +68,9 @@ export function LibraryPage({ onOpenMotif, onBackToEditor }: LibraryPageProps) {
           <h1>Saved Motifs</h1>
         </div>
         <div className="library-actions">
+          <button type="button" onClick={onOpenCapture}>
+            Capture
+          </button>
           <button type="button" onClick={onBackToEditor}>
             Editor
           </button>

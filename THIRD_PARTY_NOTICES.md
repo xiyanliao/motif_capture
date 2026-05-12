@@ -17,6 +17,7 @@ This project tracks third-party components used by the Motif Capture MVP.
 | fake-indexeddb | IndexedDB implementation for tests | Apache-2.0 |
 | FastAPI | Backend web framework | MIT |
 | Pydantic | Backend schema validation | MIT |
+| python-multipart | Multipart form parsing for FastAPI uploads | Apache-2.0 |
 | Uvicorn | ASGI server | BSD-3-Clause |
 | pytest | Backend tests | MIT |
 | httpx | TestClient transport dependency | BSD-3-Clause |

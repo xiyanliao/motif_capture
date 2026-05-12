@@ -24,6 +24,7 @@ type EditorPageProps = {
   initialMotif: Motif;
   onSaveMotif: (motif: Motif) => Promise<Motif>;
   onOpenLibrary: () => void;
+  onOpenCapture: () => void;
   onImportMotif: (motif: Motif) => void;
 };
 
@@ -31,6 +32,7 @@ export function EditorPage({
   initialMotif,
   onSaveMotif,
   onOpenLibrary,
+  onOpenCapture,
   onImportMotif
 }: EditorPageProps) {
   const [motif, setMotif] = useState<Motif>(initialMotif);
@@ -205,6 +207,9 @@ export function EditorPage({
             <span>{motif.timeSignature}</span>
           </div>
           <div className="top-action-bank">
+            <button type="button" onClick={onOpenCapture}>
+              Capture
+            </button>
             <button type="button" onClick={() => void handleSave()}>
               Save
             </button>
