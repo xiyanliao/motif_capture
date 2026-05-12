@@ -11,14 +11,28 @@ import {
 } from "../../domain/motif/editing";
 import type { Motif, MotifNote } from "../../domain/motif/types";
 import { invert, retrograde, stretchRhythm, transpose } from "../../domain/transforms";
+import { datedFilename, triggerDownload } from "../../services/export/download";
+import {
+  exportJsonBlob,
+  importMotifFromJsonFile
+} from "../../services/export/exportJson";
+import { exportMidiBlob } from "../../services/export/exportMidi";
 import { getTotalBeats, TonePlayback } from "../../services/playback/TonePlayback";
 import { PianoRoll } from "./PianoRoll";
 
 type EditorPageProps = {
   initialMotif: Motif;
+  onSaveMotif: (motif: Motif) => Promise<Motif>;
+  onOpenLibrary: () => void;
+  onImportMotif: (motif: Motif) => void;
 };
 
-export function EditorPage({ initialMotif }: EditorPageProps) {
+export function EditorPage({
+  initialMotif,
+  onSaveMotif,
+  onOpenLibrary,
+  onImportMotif
+}: EditorPageProps) {
   const [motif, setMotif] = useState<Motif>(initialMotif);
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(
     initialMotif.notes[0]?.id ?? null
@@ -26,7 +40,9 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [loop, setLoop] = useState(false);
   const [playheadBeat, setPlayheadBeat] = useState(0);
+  const [status, setStatus] = useState("Unsaved mock motif");
   const playbackRef = useRef<TonePlayback | null>(null);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const selectedNote = useMemo(
     () => motif.notes.find((note) => note.id === selectedNoteId) ?? null,
@@ -142,17 +158,76 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
     applyNotes(stretchRhythm(motif.notes, factor));
   }
 
+  async function handleSave() {
+    const savedMotif = await onSaveMotif(motif);
+    setMotif(savedMotif);
+    setStatus(`Saved ${savedMotif.title}`);
+  }
+
+  function handleExportJson() {
+    triggerDownload(exportJsonBlob(motif), datedFilename(motif.title, "json"));
+    setStatus(`Exported ${motif.title} JSON`);
+  }
+
+  function handleExportMidi() {
+    triggerDownload(exportMidiBlob(motif), datedFilename(motif.title, "mid"));
+    setStatus(`Exported ${motif.title} MIDI`);
+  }
+
+  async function handleImportJson(file: File | undefined) {
+    if (!file) {
+      return;
+    }
+
+    const importedMotif = await importMotifFromJsonFile(file);
+    setMotif(importedMotif);
+    setSelectedNoteId(importedMotif.notes[0]?.id ?? null);
+    setPlayheadBeat(0);
+    setStatus(`Imported ${importedMotif.title}`);
+    onImportMotif(importedMotif);
+
+    if (importInputRef.current) {
+      importInputRef.current.value = "";
+    }
+  }
+
   return (
     <main className="editor-shell">
       <header className="editor-header">
         <div>
-          <p className="eyebrow">Mock Editor</p>
+          <p className="eyebrow">Editor</p>
           <h1>{motif.title}</h1>
         </div>
-        <div className="motif-meta" aria-label="Motif metadata">
-          <span>{motif.key ? `${motif.key.tonic} ${motif.key.mode}` : "Key unknown"}</span>
-          <span>{motif.bpm} BPM</span>
-          <span>{motif.timeSignature}</span>
+        <div className="editor-header-actions">
+          <div className="motif-meta" aria-label="Motif metadata">
+            <span>{motif.key ? `${motif.key.tonic} ${motif.key.mode}` : "Key unknown"}</span>
+            <span>{motif.bpm} BPM</span>
+            <span>{motif.timeSignature}</span>
+          </div>
+          <div className="top-action-bank">
+            <button type="button" onClick={() => void handleSave()}>
+              Save
+            </button>
+            <button type="button" onClick={onOpenLibrary}>
+              Library
+            </button>
+            <button type="button" onClick={handleExportJson}>
+              JSON
+            </button>
+            <button type="button" onClick={handleExportMidi}>
+              MIDI
+            </button>
+            <button type="button" onClick={() => importInputRef.current?.click()}>
+              Import
+            </button>
+            <input
+              ref={importInputRef}
+              className="visually-hidden"
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => void handleImportJson(event.currentTarget.files?.[0])}
+            />
+          </div>
         </div>
       </header>
 
@@ -176,6 +251,7 @@ export function EditorPage({ initialMotif }: EditorPageProps) {
           ) : (
             <small>No note selected</small>
           )}
+          <small>{status}</small>
         </div>
 
         <div className="control-bank transport-bank">

@@ -12,6 +12,9 @@ This project tracks third-party components used by the Motif Capture MVP.
 | TypeScript | Static type checking | Apache-2.0 |
 | Vitest | Frontend unit tests | MIT |
 | Tone.js | Browser audio playback | MIT |
+| @tonejs/midi | MIDI file export | MIT |
+| Dexie | IndexedDB wrapper | Apache-2.0 |
+| fake-indexeddb | IndexedDB implementation for tests | Apache-2.0 |
 | FastAPI | Backend web framework | MIT |
 | Pydantic | Backend schema validation | MIT |
 | Uvicorn | ASGI server | BSD-3-Clause |
@@ -23,7 +26,5 @@ This project tracks third-party components used by the Motif Capture MVP.
 | Component | Purpose | License |
 | --- | --- | --- |
 | Spotify Basic Pitch | Audio-to-MIDI transcription | Apache-2.0 |
-| Dexie | IndexedDB wrapper | Apache-2.0 |
-| @tonejs/midi or midi-writer-js | MIDI export | MIT |
 
 MVP should avoid FFmpeg unless a later requirement explicitly needs it and the LGPL/GPL implications are documented.
