@@ -2,7 +2,7 @@
 
 移动端优先的 Web/PWA MVP：把 5-20 秒哼唱旋律转成可编辑、可播放、可保存、可导出的 Motif 卡片。
 
-当前阶段：Phase 6 前端录音 WAV。
+当前阶段：Phase 7 MVP 端到端闭环与 PWA 收尾。
 
 ## MVP 闭环
 
@@ -39,6 +39,18 @@ pnpm --filter web dev
 ```text
 http://localhost:5173
 ```
+
+## 录音与分析
+
+1. 启动后端 `uvicorn app.main:app --reload --port 8000`。
+2. 启动前端 `pnpm --filter web dev`。
+3. 打开 Capture：
+   - 点 `Record` 录制 5-20 秒哼唱。
+   - 点 `Stop` 后可试听原始 WAV。
+   - 点 `Basic Pitch` 走真实后端推理，或点 `Analyze Mock` 做前后端联调。
+4. 分析成功后自动进入 Editor，可播放、编辑、保存。
+5. 保存后进入 Library，刷新页面后保存内容仍保留在 IndexedDB。
+6. Editor 可导出 JSON/MIDI，Library 可导出 JSON。
 
 ## 后端启动
 
@@ -104,13 +116,25 @@ cp apps/web/.env.example apps/web/.env
 cp services/api/.env.example services/api/.env
 ```
 
+## PWA
+
+生产构建包含基础 PWA metadata、manifest、icons 和 service worker：
+
+```bash
+pnpm --filter web build
+pnpm --filter web preview
+```
+
+PWA 仅缓存 app shell 和同源 GET 资源；`POST /api/transcribe` 不缓存。
+
 ## 当前限制
 
-- Phase 6 已实现 Capture 上传入口、浏览器录音入口与 `POST /api/transcribe`。
+- Phase 7 已串联 Capture、Analyze、Editor、Playback、Save、Library、JSON/MIDI Export。
+- Phase 7 已增加 PWA manifest、service worker 和移动端基础 meta。
 - 后端已实现 mock route、Basic Pitch engine 隔离类和后处理 pipeline。
 - 前端已实现 IndexedDB 保存、Library、JSON 导入导出、MIDI 导出。
 - 录音 Stop 后可试听原始 WAV，并可上传至 mock 或 Basic Pitch engine。
-- Phase 6 尚未完成 PWA manifest 与最终端到端收尾。
+- 浏览器麦克风权限和真实输入电平仍需要人工在设备上确认。
 - Basic Pitch 真实推理依赖本地 Python 环境与模型运行能力；不可用时 API 返回 `ENGINE_NOT_AVAILABLE`，mock path 仍可用。
 
 ## 开发纪律

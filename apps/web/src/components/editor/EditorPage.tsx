@@ -40,9 +40,11 @@ export function EditorPage({
     initialMotif.notes[0]?.id ?? null
   );
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [loop, setLoop] = useState(false);
   const [playheadBeat, setPlayheadBeat] = useState(0);
-  const [status, setStatus] = useState("Unsaved mock motif");
+  const [status, setStatus] = useState("Ready");
   const playbackRef = useRef<TonePlayback | null>(null);
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -107,16 +109,23 @@ export function EditorPage({
 
   async function handlePlay() {
     if (motif.notes.length === 0) {
+      setStatus("Add a note before playback.");
       return;
     }
 
-    setIsPlaying(true);
-    await playbackRef.current?.start(motif.notes, {
-      bpm: motif.bpm,
-      loop,
-      onPlayheadBeat: setPlayheadBeat,
-      onEnded: () => setIsPlaying(false)
-    });
+    try {
+      setIsPlaying(true);
+      await playbackRef.current?.start(motif.notes, {
+        bpm: motif.bpm,
+        loop,
+        onPlayheadBeat: setPlayheadBeat,
+        onEnded: () => setIsPlaying(false)
+      });
+      setStatus(`Playing ${motif.title}`);
+    } catch (error) {
+      setIsPlaying(false);
+      setStatus(toStatusError(error, "Could not start playback."));
+    }
   }
 
   function handleStop() {
@@ -161,19 +170,35 @@ export function EditorPage({
   }
 
   async function handleSave() {
-    const savedMotif = await onSaveMotif(motif);
-    setMotif(savedMotif);
-    setStatus(`Saved ${savedMotif.title}`);
+    try {
+      setIsSaving(true);
+      setStatus("Saving motif...");
+      const savedMotif = await onSaveMotif(motif);
+      setMotif(savedMotif);
+      setStatus(`Saved ${savedMotif.title}`);
+    } catch (error) {
+      setStatus(toStatusError(error, "Could not save motif."));
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function handleExportJson() {
-    triggerDownload(exportJsonBlob(motif), datedFilename(motif.title, "json"));
-    setStatus(`Exported ${motif.title} JSON`);
+    try {
+      triggerDownload(exportJsonBlob(motif), datedFilename(motif.title, "json"));
+      setStatus(`Exported ${motif.title} JSON`);
+    } catch (error) {
+      setStatus(toStatusError(error, "Could not export JSON."));
+    }
   }
 
   function handleExportMidi() {
-    triggerDownload(exportMidiBlob(motif), datedFilename(motif.title, "mid"));
-    setStatus(`Exported ${motif.title} MIDI`);
+    try {
+      triggerDownload(exportMidiBlob(motif), datedFilename(motif.title, "mid"));
+      setStatus(`Exported ${motif.title} MIDI`);
+    } catch (error) {
+      setStatus(toStatusError(error, "Could not export MIDI."));
+    }
   }
 
   async function handleImportJson(file: File | undefined) {
@@ -181,15 +206,22 @@ export function EditorPage({
       return;
     }
 
-    const importedMotif = await importMotifFromJsonFile(file);
-    setMotif(importedMotif);
-    setSelectedNoteId(importedMotif.notes[0]?.id ?? null);
-    setPlayheadBeat(0);
-    setStatus(`Imported ${importedMotif.title}`);
-    onImportMotif(importedMotif);
-
-    if (importInputRef.current) {
-      importInputRef.current.value = "";
+    try {
+      setIsImporting(true);
+      setStatus("Importing JSON...");
+      const importedMotif = await importMotifFromJsonFile(file);
+      setMotif(importedMotif);
+      setSelectedNoteId(importedMotif.notes[0]?.id ?? null);
+      setPlayheadBeat(0);
+      setStatus(`Imported ${importedMotif.title}`);
+      onImportMotif(importedMotif);
+    } catch (error) {
+      setStatus(toStatusError(error, "Could not import Motif JSON."));
+    } finally {
+      setIsImporting(false);
+      if (importInputRef.current) {
+        importInputRef.current.value = "";
+      }
     }
   }
 
@@ -210,8 +242,8 @@ export function EditorPage({
             <button type="button" onClick={onOpenCapture}>
               Capture
             </button>
-            <button type="button" onClick={() => void handleSave()}>
-              Save
+            <button type="button" onClick={() => void handleSave()} disabled={isSaving}>
+              {isSaving ? "Saving" : "Save"}
             </button>
             <button type="button" onClick={onOpenLibrary}>
               Library
@@ -222,8 +254,12 @@ export function EditorPage({
             <button type="button" onClick={handleExportMidi}>
               MIDI
             </button>
-            <button type="button" onClick={() => importInputRef.current?.click()}>
-              Import
+            <button
+              type="button"
+              onClick={() => importInputRef.current?.click()}
+              disabled={isImporting}
+            >
+              {isImporting ? "Importing" : "Import"}
             </button>
             <input
               ref={importInputRef}
@@ -256,7 +292,7 @@ export function EditorPage({
           ) : (
             <small>No note selected</small>
           )}
-          <small>{status}</small>
+          <small aria-live="polite">{status}</small>
         </div>
 
         <div className="control-bank transport-bank">
@@ -373,4 +409,8 @@ export function EditorPage({
 function nextWholeBeat(notes: MotifNote[]): number {
   const endBeat = Math.max(0, ...notes.map((note) => note.startBeat + note.durationBeat));
   return Math.ceil(endBeat);
+}
+
+function toStatusError(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }

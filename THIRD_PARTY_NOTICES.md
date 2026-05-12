@@ -2,7 +2,7 @@
 
 This project tracks third-party components used by the Motif Capture MVP.
 
-## Phase 0 Dependencies
+## MVP Dependencies
 
 | Component | Purpose | License |
 | --- | --- | --- |
@@ -26,3 +26,5 @@ This project tracks third-party components used by the Motif Capture MVP.
 | httpx | TestClient transport dependency | BSD-3-Clause |
 
 MVP should avoid FFmpeg unless a later requirement explicitly needs it and the LGPL/GPL implications are documented.
+
+Phase 7 PWA work adds manifest, icons, and service worker code without introducing new third-party dependencies.

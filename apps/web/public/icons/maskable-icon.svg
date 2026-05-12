@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title>Motif Capture</title>
+  <rect width="512" height="512" fill="#111313"/>
+  <path d="M82 330c52-120 108-180 168-180 42 0 68 32 96 64 22 26 46 54 92 54" fill="none" stroke="#78d9c2" stroke-width="38" stroke-linecap="round"/>
+  <circle cx="128" cy="330" r="38" fill="#d7a94e"/>
+  <circle cx="250" cy="150" r="38" fill="#f7f1e5"/>
+  <circle cx="438" cy="268" r="38" fill="#d7a94e"/>
+</svg>

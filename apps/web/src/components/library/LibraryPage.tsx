@@ -16,7 +16,9 @@ export function LibraryPage({
   onOpenCapture
 }: LibraryPageProps) {
   const [motifs, setMotifs] = useState<Motif[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("Library ready");
 
   useEffect(() => {
@@ -39,25 +41,48 @@ export function LibraryPage({
   }, [motifs, query]);
 
   async function refresh() {
-    const nextMotifs = await motifRepository.list();
-    setMotifs(nextMotifs);
-    setStatus(`${nextMotifs.length} motif${nextMotifs.length === 1 ? "" : "s"}`);
+    try {
+      setIsLoading(true);
+      setError(null);
+      const nextMotifs = await motifRepository.list();
+      setMotifs(nextMotifs);
+      setStatus(`${nextMotifs.length} motif${nextMotifs.length === 1 ? "" : "s"}`);
+    } catch (refreshError) {
+      setError(toLibraryError(refreshError, "Could not load saved motifs."));
+      setStatus("Library unavailable");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   async function handleDelete(id: string) {
-    await motifRepository.delete(id);
-    await refresh();
+    try {
+      setError(null);
+      await motifRepository.delete(id);
+      await refresh();
+    } catch (deleteError) {
+      setError(toLibraryError(deleteError, "Could not delete motif."));
+    }
   }
 
   async function handleDuplicate(id: string) {
-    const copy = await motifRepository.duplicate(id);
-    await refresh();
-    setStatus(`Duplicated ${copy.title}`);
+    try {
+      setError(null);
+      const copy = await motifRepository.duplicate(id);
+      await refresh();
+      setStatus(`Duplicated ${copy.title}`);
+    } catch (duplicateError) {
+      setError(toLibraryError(duplicateError, "Could not duplicate motif."));
+    }
   }
 
   function handleExportJson(motif: Motif) {
-    triggerDownload(exportJsonBlob(motif), datedFilename(motif.title, "json"));
-    setStatus(`Exported ${motif.title}`);
+    try {
+      triggerDownload(exportJsonBlob(motif), datedFilename(motif.title, "json"));
+      setStatus(`Exported ${motif.title}`);
+    } catch (exportError) {
+      setError(toLibraryError(exportError, "Could not export motif JSON."));
+    }
   }
 
   return (
@@ -74,8 +99,8 @@ export function LibraryPage({
           <button type="button" onClick={onBackToEditor}>
             Editor
           </button>
-          <button type="button" onClick={() => void refresh()}>
-            Refresh
+          <button type="button" onClick={() => void refresh()} disabled={isLoading}>
+            {isLoading ? "Loading" : "Refresh"}
           </button>
         </div>
       </header>
@@ -88,11 +113,17 @@ export function LibraryPage({
           placeholder="Search title, key, tag"
           aria-label="Search motifs"
         />
-        <span>{status}</span>
+        <span aria-live="polite">{status}</span>
       </section>
 
       <section className="motif-list" aria-label="Saved motifs">
-        {filteredMotifs.length > 0 ? (
+        {error ? <p className="library-error">{error}</p> : null}
+        {isLoading ? (
+          <div className="library-empty">
+            <strong>Loading motifs</strong>
+            <span>Reading local library...</span>
+          </div>
+        ) : filteredMotifs.length > 0 ? (
           filteredMotifs.map((motif) => (
             <article className="motif-card" key={motif.id}>
               <div className="motif-card-main">
@@ -123,13 +154,21 @@ export function LibraryPage({
           ))
         ) : (
           <div className="library-empty">
-            <strong>No saved motifs</strong>
-            <span>Save from the editor to keep a motif here.</span>
+            <strong>{query.trim() ? "No matching motifs" : "No saved motifs"}</strong>
+            <span>
+              {query.trim()
+                ? "Adjust the search or clear the field."
+                : "Save from the editor to keep a motif here."}
+            </span>
           </div>
         )}
       </section>
     </main>
   );
+}
+
+function toLibraryError(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback;
 }
 
 function MiniContour({ notes }: { notes: Motif["notes"] }) {
