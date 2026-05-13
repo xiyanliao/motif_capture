@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
 import {
   addNote,
   DEFAULT_GRID_BEAT,
@@ -38,6 +38,8 @@ const HANDLE_WIDTH = 12;
 const MIN_VISIBLE_BEATS = 16;
 const MIN_VISIBLE_PITCHES = 18;
 const BLACK_KEY_PITCH_CLASSES = new Set([1, 3, 6, 8, 10]);
+const ROLL_TOUCH_STYLE: CSSProperties = { touchAction: "pan-x pan-y" };
+const NOTE_TOUCH_STYLE: CSSProperties = { touchAction: "none" };
 
 export function PianoRoll({
   notes,
@@ -161,13 +163,14 @@ export function PianoRoll({
         </div>
       </div>
 
-      <div className="roll-scroll" tabIndex={0}>
+      <div className="roll-scroll" tabIndex={0} style={ROLL_TOUCH_STYLE}>
         <svg
           ref={svgRef}
           className="piano-roll"
           viewBox={`0 0 ${layout.width} ${layout.height}`}
           role="img"
           aria-label="Editable piano roll"
+          style={ROLL_TOUCH_STYLE}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerEnd}
           onPointerCancel={handlePointerEnd}
@@ -252,6 +255,7 @@ export function PianoRoll({
                   width={width}
                   height={ROW_HEIGHT - 6}
                   rx={5}
+                  style={NOTE_TOUCH_STYLE}
                   onPointerDown={(event) => startDrag(event, note, "move")}
                   onDoubleClick={(event) => {
                     event.preventDefault();
@@ -266,6 +270,7 @@ export function PianoRoll({
                   width={HANDLE_WIDTH}
                   height={ROW_HEIGHT - 6}
                   rx={4}
+                  style={NOTE_TOUCH_STYLE}
                   onPointerDown={(event) => startDrag(event, note, "resize")}
                   onDoubleClick={(event) => {
                     event.preventDefault();

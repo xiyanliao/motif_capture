@@ -230,7 +230,10 @@ h1 {
   border: 1px solid #2b302d;
   border-radius: 8px;
   background: #151817;
+  overscroll-behavior: contain;
   scrollbar-color: #4f5752 #151817;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .piano-roll {
@@ -239,7 +242,7 @@ h1 {
   width: 100%;
   height: 100%;
   min-height: 540px;
-  touch-action: none;
+  touch-action: pan-x pan-y;
   user-select: none;
 }
 
@@ -294,6 +297,7 @@ h1 {
   stroke: #f5d483;
   stroke-width: 1;
   cursor: grab;
+  touch-action: none;
   transition:
     fill 120ms ease,
     stroke-width 120ms ease,
@@ -314,6 +318,7 @@ h1 {
 .note-handle {
   fill: rgb(17 19 19 / 0.42);
   cursor: ew-resize;
+  touch-action: none;
 }
 
 .note-handle-selected {
