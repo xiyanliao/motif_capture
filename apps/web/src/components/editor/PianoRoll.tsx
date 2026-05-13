@@ -13,6 +13,7 @@ type PianoRollProps = {
   selectedNoteId: string | null;
   playheadBeat: number;
   onChangeNotes: (notes: MotifNote[]) => void;
+  onAuditionPitch?: (pitch: number) => void;
   onSelectNote: (noteId: string | null) => void;
   onDeleteNote: (noteId: string) => void;
 };
@@ -23,6 +24,7 @@ type DragState = {
   startX: number;
   startY: number;
   originalNote: MotifNote;
+  captureElement: SVGElement;
 };
 
 type RollPoint = {
@@ -35,6 +37,10 @@ const HEADER_HEIGHT = 28;
 const ROW_HEIGHT = 24;
 const PIXELS_PER_BEAT = 68;
 const HANDLE_WIDTH = 12;
+const HANDLE_HIT_WIDTH = 30;
+const NOTE_HIT_PADDING_X = 8;
+const NOTE_HIT_PADDING_Y = 7;
+const MIN_NOTE_HIT_WIDTH = 44;
 const MIN_VISIBLE_BEATS = 16;
 const MIN_VISIBLE_PITCHES = 18;
 const BLACK_KEY_PITCH_CLASSES = new Set([1, 3, 6, 8, 10]);
@@ -46,10 +52,12 @@ export function PianoRoll({
   selectedNoteId,
   playheadBeat,
   onChangeNotes,
+  onAuditionPitch,
   onSelectNote,
   onDeleteNote
 }: PianoRollProps) {
   const svgRef = useRef<SVGSVGElement | null>(null);
+  const dragAuditionPitchRef = useRef<number | null>(null);
   const [dragState, setDragState] = useState<DragState | null>(null);
 
   const layout = useMemo(() => getPianoRollLayout(notes), [notes]);
@@ -95,6 +103,7 @@ export function PianoRoll({
     );
     const nextPitch = clampPitch(dragState.originalNote.pitch + deltaPitch);
 
+    auditionDraggedPitch(nextPitch);
     onChangeNotes(
       updateNote(notes, dragState.noteId, {
         startBeat: nextStartBeat,
@@ -105,8 +114,9 @@ export function PianoRoll({
 
   function handlePointerEnd(event: React.PointerEvent<SVGSVGElement>) {
     if (dragState) {
-      svgRef.current?.releasePointerCapture(event.pointerId);
+      releasePointerCapture(dragState.captureElement, event.pointerId);
     }
+    dragAuditionPitchRef.current = null;
     setDragState(null);
   }
 
@@ -118,15 +128,41 @@ export function PianoRoll({
     event.preventDefault();
     event.stopPropagation();
     const point = getSvgPoint(event.clientX, event.clientY);
-    svgRef.current?.setPointerCapture(event.pointerId);
+    capturePointer(event.currentTarget, event.pointerId);
+    dragAuditionPitchRef.current = note.pitch;
     onSelectNote(note.id);
+    onAuditionPitch?.(note.pitch);
     setDragState({
       noteId: note.id,
       kind,
       startX: point.x,
       startY: point.y,
-      originalNote: note
+      originalNote: note,
+      captureElement: event.currentTarget
     });
+  }
+
+  function auditionDraggedPitch(pitch: number) {
+    if (dragAuditionPitchRef.current === pitch) {
+      return;
+    }
+
+    dragAuditionPitchRef.current = pitch;
+    onAuditionPitch?.(pitch);
+  }
+
+  function handleNoteDoubleClick(
+    event: React.MouseEvent<SVGRectElement>,
+    note: MotifNote
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+    onDeleteNote(note.id);
+  }
+
+  function handleResizeDoubleClick(event: React.MouseEvent<SVGRectElement>) {
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   function handleBackgroundDoubleClick(event: React.MouseEvent<SVGRectElement>) {
@@ -144,6 +180,7 @@ export function PianoRoll({
     const nextNotes = addNote(notes, startBeat, pitch, id);
     onChangeNotes(nextNotes);
     onSelectNote(id);
+    onAuditionPitch?.(pitch);
   }
 
   return (
@@ -242,8 +279,18 @@ export function PianoRoll({
 
           {notes.map((note) => {
             const x = LABEL_WIDTH + note.startBeat * PIXELS_PER_BEAT;
-            const y = pitchToY(note.pitch, layout.maxPitch) + 3;
+            const rowY = pitchToY(note.pitch, layout.maxPitch);
+            const y = rowY + 3;
             const width = Math.max(18, note.durationBeat * PIXELS_PER_BEAT);
+            const hitX = Math.max(LABEL_WIDTH, x - NOTE_HIT_PADDING_X);
+            const hitWidth = Math.max(
+              MIN_NOTE_HIT_WIDTH,
+              width + (x - hitX) + NOTE_HIT_PADDING_X
+            );
+            const hitY = Math.max(HEADER_HEIGHT, rowY - NOTE_HIT_PADDING_Y);
+            const hitHeight = ROW_HEIGHT + NOTE_HIT_PADDING_Y * 2;
+            const handleHitWidth = Math.min(HANDLE_HIT_WIDTH, hitWidth);
+            const handleHitX = Math.max(hitX, x + width - handleHitWidth);
             const isSelected = note.id === selectedNoteId;
 
             return (
@@ -257,11 +304,7 @@ export function PianoRoll({
                   rx={5}
                   style={NOTE_TOUCH_STYLE}
                   onPointerDown={(event) => startDrag(event, note, "move")}
-                  onDoubleClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    onDeleteNote(note.id);
-                  }}
+                  onDoubleClick={(event) => handleNoteDoubleClick(event, note)}
                 />
                 <rect
                   className={isSelected ? "note-handle note-handle-selected" : "note-handle"}
@@ -272,10 +315,29 @@ export function PianoRoll({
                   rx={4}
                   style={NOTE_TOUCH_STYLE}
                   onPointerDown={(event) => startDrag(event, note, "resize")}
-                  onDoubleClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                  }}
+                  onDoubleClick={handleResizeDoubleClick}
+                />
+                <rect
+                  className="note-hit-area"
+                  x={hitX}
+                  y={hitY}
+                  width={hitWidth}
+                  height={hitHeight}
+                  rx={8}
+                  style={NOTE_TOUCH_STYLE}
+                  onPointerDown={(event) => startDrag(event, note, "move")}
+                  onDoubleClick={(event) => handleNoteDoubleClick(event, note)}
+                />
+                <rect
+                  className="note-handle-hit-area"
+                  x={handleHitX}
+                  y={hitY}
+                  width={handleHitWidth}
+                  height={hitHeight}
+                  rx={8}
+                  style={NOTE_TOUCH_STYLE}
+                  onPointerDown={(event) => startDrag(event, note, "resize")}
+                  onDoubleClick={handleResizeDoubleClick}
                 />
                 <text
                   className={isSelected ? "note-text note-text-selected" : "note-text"}
@@ -344,4 +406,20 @@ function isBlackKey(pitch: number): boolean {
 
 function clampPitch(pitch: number): number {
   return Math.min(127, Math.max(0, Math.round(pitch)));
+}
+
+function capturePointer(element: SVGElement, pointerId: number): void {
+  try {
+    element.setPointerCapture(pointerId);
+  } catch {
+    // Some mobile browsers can reject capture during synthetic or interrupted touches.
+  }
+}
+
+function releasePointerCapture(element: SVGElement, pointerId: number): void {
+  try {
+    element.releasePointerCapture(pointerId);
+  } catch {
+    // Pointer capture may already be released after a touch cancel.
+  }
 }

@@ -20,6 +20,8 @@ import { exportMidiBlob } from "../../services/export/exportMidi";
 import { getTotalBeats, TonePlayback } from "../../services/playback/TonePlayback";
 import { PianoRoll } from "./PianoRoll";
 
+const PITCH_AUDITION_STORAGE_KEY = "motif_capture.pitch_audition";
+
 type EditorPageProps = {
   initialMotif: Motif;
   onSaveMotif: (motif: Motif) => Promise<Motif>;
@@ -43,6 +45,9 @@ export function EditorPage({
   const [isSaving, setIsSaving] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [loop, setLoop] = useState(false);
+  const [pitchAuditionEnabled, setPitchAuditionEnabled] = useState(
+    readPitchAuditionSetting
+  );
   const [playheadBeat, setPlayheadBeat] = useState(0);
   const [status, setStatus] = useState("Ready");
   const playbackRef = useRef<TonePlayback | null>(null);
@@ -146,6 +151,27 @@ export function EditorPage({
         onPlayheadBeat: setPlayheadBeat,
         onEnded: () => setIsPlaying(false)
       });
+    }
+  }
+
+  function handlePitchAuditionToggle(enabled: boolean) {
+    setPitchAuditionEnabled(enabled);
+    writePitchAuditionSetting(enabled);
+
+    if (!enabled) {
+      playbackRef.current?.stopAudition();
+    }
+  }
+
+  async function handleAuditionPitch(pitch: number) {
+    if (!pitchAuditionEnabled) {
+      return;
+    }
+
+    try {
+      await playbackRef.current?.auditionPitch(pitch);
+    } catch (error) {
+      setStatus(toStatusError(error, "Could not preview pitch."));
     }
   }
 
@@ -279,6 +305,7 @@ export function EditorPage({
         selectedNoteId={selectedNoteId}
         playheadBeat={playheadBeat}
         onChangeNotes={applyNotes}
+        onAuditionPitch={(pitch) => void handleAuditionPitch(pitch)}
         onSelectNote={setSelectedNoteId}
         onDeleteNote={handleDeleteNote}
       />
@@ -295,6 +322,17 @@ export function EditorPage({
             <small>No note selected</small>
           )}
           <small aria-live="polite">{status}</small>
+        </div>
+
+        <div className="control-bank settings-bank">
+          <label className="editor-toggle">
+            <input
+              type="checkbox"
+              checked={pitchAuditionEnabled}
+              onChange={(event) => handlePitchAuditionToggle(event.currentTarget.checked)}
+            />
+            <span>Audition</span>
+          </label>
         </div>
 
         <div className="control-bank transport-bank">
@@ -415,4 +453,28 @@ function nextWholeBeat(notes: MotifNote[]): number {
 
 function toStatusError(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
+}
+
+function readPitchAuditionSetting(): boolean {
+  if (typeof window === "undefined") {
+    return true;
+  }
+
+  try {
+    return window.localStorage.getItem(PITCH_AUDITION_STORAGE_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+
+function writePitchAuditionSetting(enabled: boolean): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(PITCH_AUDITION_STORAGE_KEY, enabled ? "on" : "off");
+  } catch {
+    // Storage can be unavailable in private or embedded browser contexts.
+  }
 }

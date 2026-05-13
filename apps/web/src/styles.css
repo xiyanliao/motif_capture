@@ -304,7 +304,8 @@ h1 {
     filter 120ms ease;
 }
 
-.note-block:hover {
+.note-block:hover,
+.note-layer:hover .note-block {
   fill: #dfb75e;
 }
 
@@ -315,10 +316,29 @@ h1 {
   filter: drop-shadow(0 0 10px rgb(120 217 194 / 0.24));
 }
 
+.note-layer:hover .note-block-selected {
+  fill: #78d9c2;
+}
+
 .note-handle {
   fill: rgb(17 19 19 / 0.42);
   cursor: ew-resize;
   touch-action: none;
+}
+
+.note-hit-area,
+.note-handle-hit-area {
+  fill: transparent;
+  pointer-events: all;
+  touch-action: none;
+}
+
+.note-hit-area {
+  cursor: grab;
+}
+
+.note-handle-hit-area {
+  cursor: ew-resize;
 }
 
 .note-handle-selected {
@@ -337,7 +357,7 @@ h1 {
 
 .editor-controls {
   display: grid;
-  grid-template-columns: minmax(160px, 1fr) auto auto auto auto;
+  grid-template-columns: minmax(160px, 1fr) auto auto auto auto auto;
   gap: 12px;
   align-items: center;
   border-top: 1px solid #2c302d;
@@ -359,6 +379,31 @@ h1 {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: end;
+}
+
+.settings-bank {
+  align-items: center;
+}
+
+.editor-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  border: 1px solid #353936;
+  border-radius: 8px;
+  padding: 0 11px;
+  background: #171b19;
+  color: #d8d1c5;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.editor-toggle input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #78d9c2;
 }
 
 .transport-bank button {
@@ -412,6 +457,11 @@ h1 {
     display: grid;
     grid-template-columns: repeat(4, minmax(42px, 1fr));
     justify-content: stretch;
+  }
+
+  .settings-bank {
+    display: flex;
+    justify-content: start;
   }
 
   .transport-bank {

@@ -38,6 +38,8 @@ describe("piano roll touch behavior", () => {
   it("keeps note editing gestures scoped to draggable note elements", () => {
     const markup = renderPianoRoll([note]);
 
-    expect(markup.match(/style="touch-action:none"/g)).toHaveLength(2);
+    expect(markup).toContain('class="note-hit-area"');
+    expect(markup).toContain('class="note-handle-hit-area"');
+    expect(markup.match(/style="touch-action:none"/g)).toHaveLength(4);
   });
 });

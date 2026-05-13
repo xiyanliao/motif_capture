@@ -13,6 +13,9 @@ const LOOKAHEAD_MS = 33;
 
 export class TonePlayback {
   private synth: Tone.PolySynth<Tone.Synth> | null = null;
+  private auditionSynth: Tone.Synth | null = null;
+  private auditionReleaseTimer: number | null = null;
+  private auditionSequence = 0;
   private scheduledIds: number[] = [];
   private playheadTimer: number | null = null;
   private startedAtMs = 0;
@@ -64,6 +67,42 @@ export class TonePlayback {
     this.startPlayheadTimer();
   }
 
+  async auditionPitch(
+    pitch: number,
+    durationSec = 0.28,
+    velocity = 0.72
+  ): Promise<void> {
+    const sequence = this.auditionSequence + 1;
+    this.auditionSequence = sequence;
+    await Tone.start();
+    if (sequence !== this.auditionSequence) {
+      return;
+    }
+
+    this.releaseCurrentAudition();
+    const synth = this.getAuditionSynth();
+
+    synth.triggerAttack(midiToPitchName(pitch), Tone.now(), velocity);
+    this.auditionReleaseTimer = window.setTimeout(() => {
+      this.auditionReleaseTimer = null;
+      synth.triggerRelease(Tone.now());
+    }, durationSec * 1000);
+  }
+
+  stopAudition(): void {
+    this.auditionSequence += 1;
+    this.releaseCurrentAudition();
+  }
+
+  private releaseCurrentAudition(): void {
+    if (this.auditionReleaseTimer !== null) {
+      window.clearTimeout(this.auditionReleaseTimer);
+      this.auditionReleaseTimer = null;
+    }
+
+    this.auditionSynth?.triggerRelease(Tone.now());
+  }
+
   stop(): void {
     if (this.playheadTimer !== null) {
       window.clearInterval(this.playheadTimer);
@@ -75,6 +114,7 @@ export class TonePlayback {
     Tone.Transport.stop();
     Tone.Transport.cancel();
     this.synth?.releaseAll();
+    this.stopAudition();
     this.options?.onPlayheadBeat?.(0);
   }
 
@@ -82,6 +122,27 @@ export class TonePlayback {
     this.stop();
     this.synth?.dispose();
     this.synth = null;
+    this.auditionSynth?.dispose();
+    this.auditionSynth = null;
+  }
+
+  private getAuditionSynth(): Tone.Synth {
+    if (!this.auditionSynth) {
+      this.auditionSynth = new Tone.Synth({
+        oscillator: {
+          type: "triangle"
+        },
+        envelope: {
+          attack: 0.005,
+          decay: 0.05,
+          sustain: 0.28,
+          release: 0.08
+        }
+      }).toDestination();
+      this.auditionSynth.volume.value = -10;
+    }
+
+    return this.auditionSynth;
   }
 
   private startPlayheadTimer(): void {
