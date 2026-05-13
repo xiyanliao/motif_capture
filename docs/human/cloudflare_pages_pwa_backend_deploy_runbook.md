@@ -83,6 +83,19 @@ Basic Pitch 是模型推理。免费或低配实例可能出现冷启动慢、�
 
 如果 Render logs 出现模型加载失败、进程被杀、请求超时，优先升级内存/CPU，而不是先改前端。
 
+生产环境不要依赖“首次请求唤醒”。如果后端平台会 scale to zero，手机端第一次点 `Basic Pitch` 时可能先看到 `Failed to fetch`，几分钟后再次点击才成功。这通常不是录音文件坏了，而是：
+
+- 后端实例正在冷启动，平台网关先断开了请求。
+- Basic Pitch 首次 import 或模型初始化时间过长。
+- 网关返回的 502/503/504 没有 CORS 响应头，浏览器只能显示 `Failed to fetch`。
+
+代码层已在前端加入 `/api/health` 预热和 transient retry，并在后端进程内复用已加载的 Basic Pitch 模型；但部署层仍建议二选一：
+
+- 使用不会休眠的 paid/always-on Python 服务。
+- 配置外部 uptime monitor 每 5 分钟访问一次 `https://你的 API 域名/api/health`。
+
+如果第一次真实转写仍超过平台请求上限，需要升级后端 CPU/内存，或改成异步 job API；当前 MVP 保持同步 `POST /api/transcribe`。
+
 ## 二、验证后端 API
 
 在本地仓库根目录执行。

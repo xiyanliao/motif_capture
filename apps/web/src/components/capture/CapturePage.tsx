@@ -74,7 +74,11 @@ export function CapturePage({
     }
 
     setIsAnalyzing(true);
-    setStatus("Analyzing audio...");
+    setStatus(
+      engine === "basic-pitch"
+        ? "Connecting to Basic Pitch API. If the backend was idle, the first analysis can take up to 2 minutes."
+        : "Analyzing audio..."
+    );
     const response = await client.transcribe(activeFile, {
       bpm,
       quantizeGrid: "1/16",

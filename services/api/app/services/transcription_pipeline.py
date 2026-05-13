@@ -23,13 +23,16 @@ class PostprocessError(RuntimeError):
     pass
 
 
+_BASIC_PITCH_ENGINE: BasicPitchEngine | None = None
+
+
 def transcribe_with_basic_pitch(
     filename: str,
     content: bytes,
     options: TranscriptionOptions,
     engine: BasicPitchEngine | None = None,
 ) -> TranscriptionSuccessResponse:
-    active_engine = engine or BasicPitchEngine()
+    active_engine = engine or get_basic_pitch_engine()
     suffix = Path(filename or "upload.wav").suffix or ".wav"
 
     with tempfile.NamedTemporaryFile(
@@ -83,9 +86,19 @@ def transcribe_with_basic_pitch(
     )
 
 
+def get_basic_pitch_engine() -> BasicPitchEngine:
+    global _BASIC_PITCH_ENGINE
+
+    if _BASIC_PITCH_ENGINE is None:
+        _BASIC_PITCH_ENGINE = BasicPitchEngine()
+
+    return _BASIC_PITCH_ENGINE
+
+
 __all__ = [
     "EngineUnavailableError",
     "PostprocessError",
     "TranscriptionEngineError",
+    "get_basic_pitch_engine",
     "transcribe_with_basic_pitch",
 ]

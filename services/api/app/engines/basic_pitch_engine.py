@@ -1,4 +1,5 @@
 from pathlib import Path
+from threading import Lock
 from typing import Any
 from importlib.metadata import PackageNotFoundError, version
 
@@ -15,34 +16,69 @@ class TranscriptionEngineError(RuntimeError):
 
 class BasicPitchEngine:
     engine_name = "basic-pitch"
+    _load_lock = Lock()
+    _predict_lock = Lock()
+    _model: Any | None = None
+    _predict: Any | None = None
+    _engine_version = "unknown"
 
     def __init__(self) -> None:
-        self.engine_version = "unknown"
+        self.engine_version = self._engine_version
 
     def transcribe(self, wav_path: str) -> list[RawNote]:
-        predict = self._load_predict()
+        predict, model = self._load_predict_and_model()
+        self.engine_version = self._engine_version
 
         try:
-            _model_output, _midi_data, note_events = predict(wav_path)
+            with self._predict_lock:
+                _model_output, _midi_data, note_events = predict(
+                    wav_path,
+                    model_or_model_path=model,
+                )
         except Exception as exc:  # pragma: no cover - defensive wrapper around dependency
             raise TranscriptionEngineError(str(exc)) from exc
 
         raw_notes = [parse_note_event(event) for event in note_events]
         return [note for note in raw_notes if note.duration_sec > 0]
 
-    def _load_predict(self):
-        try:
-            from basic_pitch.inference import predict
-        except Exception as exc:
-            raise EngineUnavailableError(
-                "Basic Pitch is not installed or could not be imported."
-            ) from exc
+    @classmethod
+    def warm_up(cls) -> str:
+        cls._load_predict_and_model()
+        return cls._engine_version
 
-        try:
-            self.engine_version = version("basic-pitch")
-        except PackageNotFoundError:
-            self.engine_version = "unknown"
-        return predict
+    @classmethod
+    def _load_predict_and_model(cls):
+        if cls._predict is not None and cls._model is not None:
+            return cls._predict, cls._model
+
+        with cls._load_lock:
+            if cls._predict is not None and cls._model is not None:
+                return cls._predict, cls._model
+
+            try:
+                from basic_pitch.inference import ICASSP_2022_MODEL_PATH, Model, predict
+            except Exception as exc:
+                raise EngineUnavailableError(
+                    "Basic Pitch is not installed or could not be imported."
+                ) from exc
+
+            try:
+                cls._model = Model(ICASSP_2022_MODEL_PATH)
+            except Exception as exc:
+                raise EngineUnavailableError(
+                    "Basic Pitch model could not be loaded in this environment."
+                ) from exc
+
+            cls._predict = predict
+            cls._engine_version = get_basic_pitch_version()
+            return cls._predict, cls._model
+
+
+def get_basic_pitch_version() -> str:
+    try:
+        return version("basic-pitch")
+    except PackageNotFoundError:
+        return "unknown"
 
 
 def parse_note_event(event: Any) -> RawNote:
