@@ -28,6 +28,8 @@
 
 如果页面可以打开但录音后进入 Editor 看到无关旋律，优先检查真实转写 API 是否接通。排查与修复步骤见 [docs/12_production_transcription_fix_plan.md](12_production_transcription_fix_plan.md)。
 
+面向人工操作的逐步部署手册见 [docs/human/cloudflare_pages_pwa_backend_deploy_runbook.md](human/cloudflare_pages_pwa_backend_deploy_runbook.md)。
+
 ## 后端 CORS 配置
 
 FastAPI 后端需要允许 Cloudflare Pages 的 origin：
